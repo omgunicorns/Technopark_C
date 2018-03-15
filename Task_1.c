@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int getMaxConsequentSection(int *a, N, int *b){
+int getMaxConsequentSection(int *a, int N, int *b){
 // N1 - длина первого найдённого подотрезка, N2 - длина второго найдённого подотрезка (если такой найдётся)
   // b - указатель на подотрезок (он только один, так как понадобится указатель только для большего найдённого подотрезка)
   
