@@ -84,7 +84,7 @@ int N;
   int ans=getMaxConsequentSection(a, N, b);
   printf("%d\n",ans);
 
-  if(b) for(int i=0;i<ans;i++) printf("%d ",b[i]);
+  if(N1>1) for(int i=0;i<ans;i++) printf("%d ",b[i]);
 
   free(a);
   free(b);
