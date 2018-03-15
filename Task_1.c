@@ -65,7 +65,7 @@ int getMaxConsequentSection(int *a, int N, int *b){
 int main()
 {
   
-int N, *b;
+int N;
 
   scanf("%d",&N);
   if(N<0||!N){
@@ -80,6 +80,7 @@ int N, *b;
 			printf("[error]");
 			return 0;
 		}
+  int *b=NULL;
   int ans=getMaxConsequentSection(a, N, b);
   printf("%d\n",ans);
 
