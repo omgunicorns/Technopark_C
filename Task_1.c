@@ -4,36 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main()
-{
-  
-int N, *b;
-
-  scanf("%d",&N);
-  if(N<0||!N){
-      printf("[error]");
-      return 0;
-
-  }
- int *a=malloc((N+1)*sizeof(int));
-   for(int i=0;i<N;i++)
-        if(!scanf("%d",&a[i])){
-			free(a);
-			printf("[error]");
-			return 0;
-		}
-  int ans=getMaxConsequentSection(a, N, b);
-  printf("%d\n",ans);
-
-  if(b) for(int i=0;i<N1;i++) printf("%d ",b[i]);
-
-  free(a);
-  free(b);
-
-  return 0;
-}
-
-
 int getMaxConsequentSection(int *a, N, int *b){
 // N1 - длина первого найдённого подотрезка, N2 - длина второго найдённого подотрезка (если такой найдётся)
   // b - указатель на подотрезок (он только один, так как понадобится указатель только для большего найдённого подотрезка)
@@ -91,3 +61,35 @@ int getMaxConsequentSection(int *a, N, int *b){
       return 0;
   } else return N1;
 }
+
+int main()
+{
+  
+int N, *b;
+
+  scanf("%d",&N);
+  if(N<0||!N){
+      printf("[error]");
+      return 0;
+
+  }
+ int *a=malloc((N+1)*sizeof(int));
+   for(int i=0;i<N;i++)
+        if(!scanf("%d",&a[i])){
+			free(a);
+			printf("[error]");
+			return 0;
+		}
+  int ans=getMaxConsequentSection(a, N, b);
+  printf("%d\n",ans);
+
+  if(b) for(int i=0;i<ans;i++) printf("%d ",b[i]);
+
+  free(a);
+  free(b);
+
+  return 0;
+}
+
+
+
