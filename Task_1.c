@@ -7,11 +7,7 @@
 int main()
 {
   
-  
-  // N - длина вводимого массива, N1 - длина первого найдённого подотрезка, N2 - длина второго найдённого подотрезка (если такой найдётся)
-  // b - указатель на подотрезок (он только один, так как понадобится указатель только для большего найдённого подотрезка)
-  
-  int N, N1=1, N2=0, *b; 
+int N, *b;
 
   scanf("%d",&N);
   if(N<0||!N){
@@ -19,19 +15,34 @@ int main()
       return 0;
 
   }
-  
  int *a=malloc((N+1)*sizeof(int));
-  
- int prev=0;
-  
-    for(int i=0;i<N;prev=a[i],i++){
-		
+   for(int i=0;i<N;i++)
         if(!scanf("%d",&a[i])){
 			free(a);
 			printf("[error]");
 			return 0;
 		}
-        
+  int ans=getMaxConsequentSection(a, N, b);
+  printf("%d\n",ans);
+
+  if(b) for(int i=0;i<N1;i++) printf("%d ",b[i]);
+
+  free(a);
+  free(b);
+
+  return 0;
+}
+
+
+int getMaxConsequentSection(int *a, N, int *b){
+// N1 - длина первого найдённого подотрезка, N2 - длина второго найдённого подотрезка (если такой найдётся)
+  // b - указатель на подотрезок (он только один, так как понадобится указатель только для большего найдённого подотрезка)
+  
+  int N1=1, N2=0;
+
+ int prev=0;
+  
+    for(int i=0;i<N;prev=a[i],i++){
         
         if(i>0){if(a[i]-prev==1){
             if(N2)N2++; else N1++; //если N2>0, то N2 увеличиваем на 1. Иначе N2 не трогаем, а N1 увеличиваем на 1.
@@ -75,16 +86,8 @@ int main()
   
   //Всё, имеем N1 - длина наибольшего найдённого подотрезка и b - указатель на него.
   
-  if(N1>1) printf("%d\n", N1); else {
-      printf("0");
-       free(a);
+  if(N1<2) {
+      b=NULL;
       return 0;
-  }
-  
-  
-  for(int i=0;i<N1;i++) printf("%d ",b[i]);
-
-  free(a);
-
-  return 0;
+  } else return N1;
 }
