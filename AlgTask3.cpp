@@ -42,7 +42,7 @@ class MyDeque {
 public:
     
     // конструктор с задаваемым начальным размером буффера
-    MyDeque( int size ) : bufferSize( size ), top( -1 ) { buffer = new int[size]; }
+    MyDeque( int size ) : bufferSize( size ), bottom( 0 ), top( -1 ) { buffer = new int[size]; }
     
     // деструктор
     ~MyDeque() { delete[] buffer; }
@@ -60,11 +60,11 @@ public:
     int popBack();
     
     // для проверки пустоты очереди
+        
+    int getLength() const { return top - bottom + 1; }
     
-    bool isEmpty() const { return top == -1; }
-    
-    int getLength() const { return top + 1; }
-    
+	bool isEmpty() const { return getLength() == 0; }
+	
     int* getBuffer() const { return buffer; }
 
     
@@ -73,35 +73,37 @@ private:
     int* buffer;
     int bufferSize;
     int top;
-    
+    int bottom;
+				
     void resize( int newTop );
     void determineResizing( int how );
 };
 
 //добавление в конец дека
 
-void MyDeque::pushBack(int data) {
-    // увеличим буфер
-    
+void MyDeque::pushBack( int data ) {
+    // увеличит буфер если необходимо
     determineResizing( GROW );
-    
+	
+	// увеличим индекс последнего элемента и запишем туда данные
     buffer[++top] = data;
 }
 
-void MyDeque::pushFront(int data) {
+void MyDeque::pushFront( int data ) {
+    // увеличит буфер если необходимо
+    determineResizing( GROW );		
+			 			
+	if( bottom > 0 || top < bufferSize - 1 ) {
+		// значит, либо снизу, либо сверху есть место
+		bottom--;
+		int index = bottom % bufferSize;
+		buffer[index] = data;	
+	} else {
+		// иначе у нас буфер забит уже, и тогда мы просто увеличиваем размер и пихаем в конец, что равносильно вызову pushBack
+		pushBack( data );
+	}
+				
     
-    determineResizing( GROW );
-    
-    top++;
-    
-    //сдвигаем вперед все данные
-    
-    for( int i = top; i > 0; i-- ) {
-        buffer[i] = buffer[i - 1];
-    }
-    
-    // ставим в начало новое число
-    buffer[0] = data;
 }
 
 int MyDeque::popBack() {
@@ -126,51 +128,57 @@ void MyDeque::determineResizing(int how){
     
     // решает, что делать с отводимой памятью
     
-    if( ( top + how ) * 2 < bufferSize ) {
+    if( ( top - bottom + how ) * 4 < bufferSize ) {
         // слишком велик размер, пора уменьшать, но только если он не есть 1
-        if(bufferSize > 1) {
-            bufferSize /= 2;
+        if( bufferSize > 1 ) {
+			// уменьшим всего лишь в два раза, а не в четыре, чтоб в случае последующего вызова push* не пришлось снова увеличивать				
+			bufferSize /= 2;
+									
+        	int* newArr = new int[bufferSize];
+    
+   			for( int i = bottom; i < top; i++ ) {
+      			newArr[i - bufferSize] = buffer[i];
+  			}
+   									
+			top -= bufferSize;
+			bottom -= bufferSize;
+			
+			delete[] buffer;
+    		buffer = newArr;								
         } else {
-            // если размер уже 1, то уменьшать дальше не стоит, чтоб не потерять возможность увеличивать
+            // если размер уже 1, то уменьшать дальше нельзя, чтоб не потерять возможность увеличивать
             return;
         }
-    } else if( top + how > bufferSize ) {
+    } else if( top - bottom + how > bufferSize ) {
         // недостаточно места, пора увеличивать
         bufferSize *= 2;
+		int* newArr = new int[bufferSize];
+    
+   		for( int i = bottom; i < top; i++ ) {
+     		newArr[i] = buffer[i];
+  		}	
+		
+		delete[] buffer;
+  		buffer = newArr;
+    
+		
     } else {
         // отводимую память обновлять не нужно
         return;
-    }
+    }    
     
-    // изменение отведенной на массив памяти
-    
-    int* newArr = new int[bufferSize];
-    
-    for( int i = 0; i < top + 1; i++ ) {
-        newArr[i] = buffer[i];
-    }
-    
-    delete[] buffer;
-    buffer = newArr;
     
 }
-
-
 
 int MyDeque::popFront() {
     
     assert( !isEmpty() );
     
-    int data = buffer[0];
+	int index = bottom % bufferSize;
+	
+    int data = buffer[index];
     
-    //принимает решение, нужно ли изменить размер массива
-    determineResizing( SHRINK );
-    
-    //обрезает массив снизу
-    for( int i = 1; i < top + 1; i++ )
-        buffer[i - 1] = buffer[i];
-    
-    top--;
+	bottom++; 
     
     return data;
 }
