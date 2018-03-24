@@ -35,9 +35,6 @@
 #include <iostream>
 #include <assert.h>
 
-#define SHRINK -1
-#define GROW    1
-
 class MyDeque {
 public:
     
@@ -63,46 +60,55 @@ public:
         
     int getLength() const { return top - bottom + 1; }
     
-	bool isEmpty() const { return getLength() == 0; }
-	
+    bool isEmpty() const { return getLength() == 0; }
+    
     int* getBuffer() const { return buffer; }
 
+    int top;
+    int bottom;
     
 private:
     
     int* buffer;
     int bufferSize;
-    int top;
-    int bottom;
-				
-    void resize( int newTop );
-    void determineResizing( int how );
+   
+    void increaseSize();
 };
 
 //добавление в конец дека
 
 void MyDeque::pushBack( int data ) {
-    // увеличит буфер если необходимо
-    determineResizing( GROW );
-	
-	// увеличим индекс последнего элемента и запишем туда данные
-    buffer[++top] = data;
+    
+    if( bottom > 0 || top < bufferSize - 1 ) {
+        
+        top++;
+        int index = top % bufferSize;
+        buffer[index] = data;    
+        
+    } else {
+        
+        // увеличим буфер
+        increaseSize();
+        buffer[++top] = data;
+               
+    }
+    
 }
 
 void MyDeque::pushFront( int data ) {
     // увеличит буфер если необходимо
-    determineResizing( GROW );		
-			 			
-	if( bottom > 0 || top < bufferSize - 1 ) {
-		// значит, либо снизу, либо сверху есть место
-		bottom--;
-		int index = bottom % bufferSize;
-		buffer[index] = data;	
-	} else {
-		// иначе у нас буфер забит уже, и тогда мы просто увеличиваем размер и пихаем в конец, что равносильно вызову pushBack
-		pushBack( data );
-	}
-				
+    increaseSize();
+                         
+    if( bottom > 0 || top < bufferSize - 1 ) {
+        // значит, либо снизу, либо сверху есть место
+        bottom--;
+        int index = bottom % bufferSize;
+        buffer[index] = data;    
+    } else {
+        // иначе у нас буфер забит уже, и тогда мы просто увеличиваем размер и пихаем в конец, что равносильно вызову pushBack
+        pushBack( data );
+    }
+                
     
 }
 
@@ -114,81 +120,58 @@ int MyDeque::popBack() {
     
     int data = buffer[top];
     
-    determineResizing( SHRINK );
-    
     top--;
     
     return data;
     
 }
 
-void MyDeque::determineResizing(int how){
-    
-    assert( bufferSize >= 0 );
+void MyDeque::increaseSize(){
     
     // решает, что делать с отводимой памятью
     
-    if( ( top - bottom + how ) * 4 < bufferSize ) {
-        // слишком велик размер, пора уменьшать, но только если он не есть 1
-        if( bufferSize > 1 ) {
-			// уменьшим всего лишь в два раза, а не в четыре, чтоб в случае последующего вызова push* не пришлось снова увеличивать				
-			bufferSize /= 2;
-									
-        	int* newArr = new int[bufferSize];
-    
-   			for( int i = bottom; i < top; i++ ) {
-      			newArr[i - bufferSize] = buffer[i];
-  			}
-   									
-			top -= bufferSize;
-			bottom -= bufferSize;
-			
-			delete[] buffer;
-    		buffer = newArr;								
-        } else {
-            // если размер уже 1, то уменьшать дальше нельзя, чтоб не потерять возможность увеличивать
-            return;
-        }
-    } else if( top - bottom + how > bufferSize ) {
+    if( top - bottom + 2 > bufferSize ) {
         // недостаточно места, пора увеличивать
+
+        int* newArr = new int[bufferSize * 2];
+    
+        int i = 0;
+    
+        while( !isEmpty() )
+            newArr[++i] = popFront();  
+        
         bufferSize *= 2;
-		int* newArr = new int[bufferSize];
+        
+        delete[] buffer;
+        buffer = newArr;
     
-   		for( int i = bottom; i < top; i++ ) {
-     		newArr[i] = buffer[i];
-  		}	
-		
-		delete[] buffer;
-  		buffer = newArr;
-    
-		
+        
     } else {
         // отводимую память обновлять не нужно
         return;
     }    
-    
-    
+        
 }
 
 int MyDeque::popFront() {
     
     assert( !isEmpty() );
     
-	int index = bottom % bufferSize;
-	
+    int index = bottom % bufferSize;
+    
     int data = buffer[index];
     
-	bottom++; 
+    bottom++; 
     
     return data;
 }
 
 // для вывода содержания дека, чтоб проверить, что дек работает на самом деле
 
-void writeArray( int* arr, int N ) {
+void writeArray( int* arr, int start, int end) {
     std::cout << "Current deque: ";
     
-    for( int i = 0; i < N; i++ ) {
+    for( int i = start; i <= end; i++ ) {
         std::cout << arr[i] << " ";
     }
     
@@ -228,7 +211,7 @@ int main( int argc, const char* argv[] ) {
         switch( a ) {
             case 1: {
                 deque -> pushFront( b );
-                //writeArray( deque -> getBuffer(), deque -> getLength() );
+                //writeArray( deque -> getBuffer(), deque -> bottom % deque -> getLength(), deque -> top % deque -> getLength());
                 break;
             }
             case 2: {
@@ -237,18 +220,18 @@ int main( int argc, const char* argv[] ) {
                 if( poppedValue != b ) {
                     EverythingOkay = 0;
                 }
-                //writeArray( deque -> getBuffer(), deque -> getLength() );
+                //writeArray( deque -> getBuffer(), deque -> bottom % deque -> getLength(), deque -> top % deque -> getLength());
                 break;
             }
             case 3: {
                 deque -> pushBack( b );
-                //writeArray( deque -> getBuffer(), deque -> getLength() );
+                //writeArray( deque -> getBuffer(), deque -> bottom % deque -> getLength(), deque -> top % deque -> getLength());
                 break;
             }
             case 4: {
                 int poppedValue = ( deque -> isEmpty() ) ? -1 : deque -> popBack();
                 if( poppedValue != b ) EverythingOkay = 0;
-                //writeArray( deque -> getBuffer(), deque -> getLength() );
+                //writeArray( deque -> getBuffer(), deque -> bottom % deque -> getLength(), deque -> top % deque -> getLength());
                 break;
             }
         }
