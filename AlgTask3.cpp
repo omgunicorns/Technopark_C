@@ -128,9 +128,8 @@ int MyDeque::popBack() {
 
 void MyDeque::increaseSize(){
     
-    // решает, что делать с отводимой памятью
     
-    if( top - bottom + 2 > bufferSize ) {
+    if( top - bottom + 3 > bufferSize ) {
         // недостаточно места, пора увеличивать
 
         int* newArr = new int[bufferSize * 2];
@@ -138,18 +137,18 @@ void MyDeque::increaseSize(){
         int i = 0;
     
         while( !isEmpty() )
-            newArr[++i] = popFront();  
+            newArr[i++] = popFront();  
         
         bufferSize *= 2;
+        
+        bottom = 0;
+        top = i;
         
         delete[] buffer;
         buffer = newArr;
     
         
-    } else {
-        // отводимую память обновлять не нужно
-        return;
-    }    
+    }
         
 }
 
@@ -195,13 +194,6 @@ int main( int argc, const char* argv[] ) {
     
     // изначальный размер 1, чтоб можно было ресайзить
     MyDeque* deque = new MyDeque( 1 );
-    
-    // фишка для прохождения, точнее, для понимания 29-го теста
-    
-    /*if( cmdCount > 500000 ) {
-        std::cout << "YES";
-        exit( 0 );
-    }*/
     
     for( int i = 0; i < cmdCount; i++ ) {
         
