@@ -1,37 +1,32 @@
 //
 //  main.cpp
-//  AlgTask1
+//  AlgTask2
 //
 //  Created by Petr on 18.03.2018.
 //  Copyright © 2018 PETR. All rights reserved.
 //
 
 /*
+
+ Задача 2_2
  
- Задача 1_1
+ Дан массив целых чисел А[0..n-1]. Известно, что на интервале [0, m] значения массива строго возрастают, а на интервале [m, n-1] строго убывают. Найти m за O(log m).
+ 2 ≤ n ≤ 10000.
  
- Даны два массива целых чисел одинаковой длины A[0..n-1] и B[0..n-1].
- Необходимо найти первую пару индексов i0 и j0,
- такую что A[i0] + B[j0] = max {A[i] + B[j], где 0 <= i < n, 0 <= j < n, i <= j}.
- Время работы - O(n). n ≤ 100000.
- 
- ПРИМЕР
+ Пример
  
  Ввод
  
- 4
- 4 -8 6 0
- -10 3 1 1
+ 10
+ 1 2 3 4 5 6 7 6 5 4
  
  Вывод
  
- 0 1
+ 6
  
 */
 
-
 #include <iostream>
-
 
 void readArray( int* arr, int size ) {
     for( int i = 0; i < size; i++ ) {
@@ -39,62 +34,76 @@ void readArray( int* arr, int size ) {
     }
 }
 
-void findMaximums( int* arr, int* maximums, int size ) {
+int binaryPeak( int*  arr, int start, int end ) {
     
-    // составляет массив из индексов масксимума
-    // то есть i-й элемент новобранного массива содержит индекс маскимального элемента подмассива [0, i]
+    // запомним конец
+    static int end_0 = end;
     
-    int max = 0;
+    //пусть пик у нас в середине
+    int peak = (start + end) / 2;
     
-    for( int i = 0; i < size; i++) {
-        if( arr[i] > arr[max] ) {
-            max=i;
+    // теперь будем двигать пик в зависимости от его боковых значений
+    
+    if( arr[peak] < arr[peak - 1] ) {
+        end = peak - 2;
+    } else if ( arr[peak] < arr[peak + 1] ) {
+        start = peak + 2;
+        
+        //если у нас начало уже сжатого массива оказывается больше, чем изначальный конец, то последовательность строго возрастает и пиком будет последний элемент
+        if(start > end_0) {
+            return end_0;
         }
-        maximums[i]=max;
+    } else {
+        
+        // сюда попадаем в том случае, если пик больше соседних элементов (то есть он в самом деле является пиком)
+        // и тогда наш поиск закончен
+        
+        return peak;
     }
+    
+    return binaryPeak( arr, start, end );
 }
 
-int findMaxInArraysSum( int* arr1, int* arr2, int* maximums, int size ) {
+int localizeInterval( int* arr, int size ) {
     
-    // пользуясь подсказочным массивом, полученным в findMaximums, просто суммирует попарно, находит индекс маскимума во втором массиве.
-    //В первом массиве индекс может быть получен как maximums[max], где maximums - результат работы findMaximums
-    
-    int max = 0;
-    for( int i = 0; i < size; i++ ) {
-        if( arr1[maximums[i]] + arr2[i] > arr1[maximums[max]] + arr2[max] ) {
-            max=i;
+    int num = 1;
+    for( ; num < size; num *= 2 ) {
+        if( arr[num] < arr[num - 1] ) {
+            break;
         }
     }
-    return max;
+    return num;
 }
+
 
 int main( int argc, const char* argv[] ) {
-
+    
     int arrayLength = 0;
     
     std::cin >> arrayLength;
-    if( arrayLength < 1 ) {
-        return 0;
+    
+    int* array = new int[arrayLength];
+    
+    readArray( array, arrayLength );
+    
+    // определим конец интервала
+    int intervalEnd = localizeInterval( array, arrayLength ) - 1;
+    
+    // начало, соответсвенно
+    int intervalStart = intervalEnd / 2;
+    
+    // обрежем интервал сверху, если он ушел за пределы массива
+    if( intervalEnd >= arrayLength - 1 ) {
+        intervalEnd = arrayLength - 1;
     }
     
-    int* firstArray = new int[arrayLength];
-    int* secondArray = new int[arrayLength];
-    int* firstMaximums = new int[arrayLength];
+    // выполним бинарный поиск пикового значения в пределах локализированного интервала
     
-    readArray( firstArray, arrayLength );
-    readArray( secondArray, arrayLength );
+    int max = binaryPeak( array, intervalStart, intervalEnd );
     
-    //массив из индексов максимумов массива firstArray
-    findMaximums( firstArray, firstMaximums, arrayLength );
-    //индекс элемента во втором массиве, вместе с которым будет максимальная сумма
-    int max = findMaxInArraysSum( firstArray, secondArray, firstMaximums, arrayLength );
+    std::cout << max << "\n";
     
-    std::cout << firstMaximums[max] << " " << max << "\n";
-    
-    delete [] firstArray;
-    delete [] secondArray;
-    delete [] firstMaximums;
+    delete [] array;
     
     return 0;
 }
-
